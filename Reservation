@@ -1,0 +1,56 @@
+package reservation;
+
+import car.Car;
+import customer.Customer;
+
+import java.time.LocalDate;
+
+public class Reservation {
+    private final String id;
+    private Car car;
+    private final Customer customer;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+    private ReservationStatus status;
+
+    public Reservation(String id,Car car,Customer customer,LocalDate startDate,LocalDate endDate){
+        this.id = id;
+        this.car = car;
+        this.customer = customer;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        status = ReservationStatus.CONFIRMED;
+    }
+
+    public synchronized void modify(Car car){
+        this.car = car;
+    }
+
+    public synchronized void cancel(){
+        status = ReservationStatus.CANCELLED;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Car getCar() {
+        return car;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+}
