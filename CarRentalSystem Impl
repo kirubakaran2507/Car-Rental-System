@@ -1,0 +1,164 @@
+package carrentalsystem;
+
+import car.Car;
+import car.CarStatus;
+import customer.Customer;
+import payment.Payment;
+import payment.PaymentStatus;
+import reservation.Reservation;
+import reservation.ReservationStatus;
+
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class CarRentalSystemImpl implements CarRentalSystem{
+    private static CarRentalSystemImpl instance;
+    private final Map<String, Car> cars;
+    private final Map<String, Customer> customers;
+    private final Map<String, Reservation> reservations;
+
+    private CarRentalSystemImpl(){
+        cars = new ConcurrentHashMap<>();
+        customers = new ConcurrentHashMap<>();
+        reservations = new ConcurrentHashMap<>();
+    }
+
+    public synchronized static CarRentalSystemImpl getInstance(){
+        if (instance==null){
+            instance = new CarRentalSystemImpl();
+        }
+        return instance;
+    }
+
+    @Override
+    public void addCar(Car car) {
+        cars.put(car.getId(), car);
+    }
+
+    @Override
+    public void addCustomer(Customer customer) {
+        customers.put(customer.id(), customer);
+    }
+
+    @Override
+    public synchronized void reserveCar(String make, String customerId, LocalDate startDate, LocalDate endDate) {
+        Car car = getCarByMake(make);
+        Customer customer = customers.get(customerId);
+        if (car == null || customer == null) {
+            System.out.println("Car model you requested is not available or wrong customer id");
+            return;
+        }
+
+        if (isAvailable(car,startDate,endDate)) {
+            Reservation reservation = new Reservation(generateId(), car, customer,startDate,endDate);
+            reservations.put(reservation.getId(), reservation);
+            car.reserve();
+            car.setFreeDate(reservation.getEndDate());
+            System.out.println("Reservation id "+reservation.getId());
+            System.out.println("Car reserved");
+        }
+    }
+
+    @Override
+    public synchronized void modifyReservation(String reservationId,String make) {
+        Reservation reservation = reservations.get(reservationId);
+        if (isReserved(reservation)) return;
+        Car car = reservation.getCar();
+        Car newCar = getCarByMake(make);
+
+        if (car == null || newCar==null) return;
+
+        if (reservation.getStatus()==ReservationStatus.CONFIRMED) {
+            car.cancel();
+            newCar.reserve();
+            reservation.modify(newCar);
+            System.out.println("Reservation modified");
+        }
+    }
+
+    @Override
+    public synchronized void cancelReservation(String reservationId) {
+        Reservation reservation = reservations.get(reservationId);
+        if (isReserved(reservation)) return;
+
+        Car car = reservation.getCar();
+        if (reservation.getStatus()== ReservationStatus.CONFIRMED) {
+            reservation.cancel();
+            reservations.remove(reservationId);
+            car.cancel();
+            System.out.println("Reservation cancelled");
+        }
+    }
+
+    @Override
+    public synchronized void takeCarForRent(String reservationId) {
+        Reservation reservation = reservations.get(reservationId);
+        if (isReserved(reservation)) return;
+
+        Car car = reservation.getCar();
+        if (car.getStatus()==CarStatus.RESERVED) {
+            car.takeRent();
+            System.out.println("Car took for rent");
+        }
+    }
+
+    @Override
+    public synchronized void returnCar(String reservationId,Payment payment) {
+        Reservation reservation = reservations.get(reservationId);
+        if (isReserved(reservation)) return;
+
+        processPayment(reservation, payment);
+
+        if (payment.getStatus() == PaymentStatus.SUCCESSFUL) {
+            Car car = reservation.getCar();
+            if (car.getStatus() == CarStatus.RENTED) {
+                reservations.remove(reservationId);
+                reservation.cancel();
+                car.cancel();
+                System.out.println("Car rented");
+            }
+        }
+    }
+
+    private boolean isAvailable(Car car,LocalDate startDate,LocalDate endDate){
+        for (Reservation reservation : reservations.values()){
+            if (reservation.getCar().equals(car)){
+                if (startDate.isBefore(reservation.getEndDate()) && endDate.isAfter(reservation.getStartDate())){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void showAllCars() {
+        for (Car car : cars.values()) {
+            car.displayCar();
+        }
+    }
+
+    @Override
+    public String generateId() {
+        return UUID.randomUUID().toString().substring(0,8);
+    }
+
+    private void processPayment(Reservation reservation,Payment payment){
+        payment.processPayment(reservation);
+    }
+
+    private Car getCarByMake(String make){
+        for (Car car : cars.values()){
+            if (car.getMake().equals(make)){
+                return car;
+            }
+        }
+        return null;
+    }
+
+    private boolean isReserved(Reservation reservation){
+        return (reservation == null);
+    }
+}
