@@ -1,0 +1,66 @@
+package car;
+
+import java.time.LocalDate;
+
+public class Car {
+    private final String id;
+    private final String make;
+    private final String model;
+    private final int year;
+    private final int number;
+    private final int rentalPrice;
+    private CarStatus status;
+    private LocalDate freeDate;
+
+    public Car(String id,String make,String model,int year,int number,int rentalPrice){
+        this.id = id;
+        this.make = make;
+        this.model = model;
+        this.year = year;
+        this.number = number;
+        this.rentalPrice = rentalPrice;
+        status = CarStatus.AVAILABLE;
+    }
+
+    public void displayCar(){
+        System.out.println("Car id       :" + id);
+        System.out.println("Make         :" + make);
+        System.out.println("Model        :" + model);
+        System.out.println("Year         :" + year);
+        System.out.println("Plate number :" + number);
+        System.out.println("Rent         :" + rentalPrice);
+        System.out.println((status==CarStatus.AVAILABLE) ? "AVAILABLE NOW" : "AVAILABLE FROM "+freeDate.toString());
+        System.out.println("----------------------------------");
+    }
+    public synchronized void reserve(){
+        status = CarStatus.RESERVED;
+    }
+
+    public synchronized void cancel(){
+        status = CarStatus.AVAILABLE;
+    }
+
+    public synchronized void takeRent(){
+        status = CarStatus.RENTED;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getMake() {
+        return make;
+    }
+
+    public int getRentalPrice() {
+        return rentalPrice;
+    }
+
+    public CarStatus getStatus() {
+        return status;
+    }
+
+    public void setFreeDate(LocalDate freeDate) {
+        this.freeDate = freeDate;
+    }
+}
