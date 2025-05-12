@@ -1,0 +1,95 @@
+package carrentalsystem;
+
+import car.Car;
+import customer.Customer;
+import payment.Payment;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        CarRentalSystemImpl instance = CarRentalSystemImpl.getInstance();
+
+        Car car1 = new Car(instance.generateId(), "honda","honda15",2015,3456,5000);
+        Car car2 = new Car(instance.generateId(), "honda","honda23",2023,4987,7000);
+        Car car3 = new Car(instance.generateId(), "toyota","toyota21",2021,8739,10000);
+        Car car4 = new Car(instance.generateId(), "toyota","toyota22",2022,9899,8000);
+        Car car5 = new Car(instance.generateId(), "lamborghini","lamborghini25",2025,7777,50000);
+
+        instance.addCar(car1);
+        instance.addCar(car2);
+        instance.addCar(car3);
+        instance.addCar(car4);
+        instance.addCar(car5);
+
+        Customer customer1 = new Customer("1", "karan","karan@gmail.com", 9626774290L);
+        Customer customer2 = new Customer("2", "prem","prem@gmail.com", 8637388388L);
+        Customer customer3 = new Customer("3", "jack","jack@gmail.com",9725679820L);
+
+        instance.addCustomer(customer1);
+        instance.addCustomer(customer2);
+        instance.addCustomer(customer3);
+
+        while (true){
+            System.out.println("1  Reserve car");
+            System.out.println("2. Modify reservation");
+            System.out.println("3. Cancel reservation");
+            System.out.println("4. Take car for rent");
+            System.out.println("5. Return car");
+            System.out.println("6. Show available cars");
+            System.out.println("7. Exit");
+
+            int option = scanner.nextInt();
+
+            switch (option){
+                case 1:
+                    System.out.println("Car make");
+                    String make = scanner.next();
+                    System.out.println("Customer id");
+                    String id = scanner.next();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    System.out.println("Start date");
+                    LocalDate startDate = LocalDate.parse(scanner.next(),formatter);
+                    System.out.println("End date");
+                    LocalDate endDate = LocalDate.parse(scanner.next(),formatter);
+                    instance.reserveCar(make,id,startDate,endDate);
+                    break;
+                case 2:
+                    System.out.println("Reservation id");
+                    id = scanner.next();
+                    System.out.println("New car make");
+                    make = scanner.next();
+                    instance.modifyReservation(id,make);
+                    break;
+                case 3:
+                    System.out.println("Reservation id");
+                    id = scanner.next();
+                    instance.cancelReservation(id);
+                    break;
+                case 4:
+                    System.out.println("Reservation id");
+                    id = scanner.next();
+                    instance.takeCarForRent(id);
+                    break;
+                case 5:
+                    System.out.println("Reservation id");
+                    id = scanner.next();
+                    System.out.println("Enter amount to pay rent ");
+                    double amount = scanner.nextDouble();
+                    Payment payment = new Payment(amount);
+                    instance.returnCar(id,payment);
+                    break;
+                case 6:
+                    instance.showAllCars();
+                    break;
+                case 7:
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid option");
+            }
+        }
+    }
+}
