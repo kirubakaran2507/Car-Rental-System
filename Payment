@@ -1,0 +1,30 @@
+package payment;
+
+import reservation.Reservation;
+
+public class Payment {
+    private final double amount;
+    private PaymentStatus status;
+
+    public Payment(double amount){
+        this.amount = amount;
+        status = PaymentStatus.UNSUCCESSFUL;
+    }
+
+    public synchronized void processPayment(Reservation reservation){
+        double totalRent = reservation.getCar().getRentalPrice();
+
+        if (amount>=totalRent){
+            status = PaymentStatus.SUCCESSFUL;
+            System.out.println("Payment successful");
+        }
+        else {
+            status = PaymentStatus.UNSUCCESSFUL;
+            System.out.println("Payment unsuccessful");
+        }
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+}
