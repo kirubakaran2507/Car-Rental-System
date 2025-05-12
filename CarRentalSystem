@@ -1,0 +1,19 @@
+package carrentalsystem;
+
+import car.Car;
+import customer.Customer;
+import payment.Payment;
+
+import java.time.LocalDate;
+
+public interface CarRentalSystem {
+    void addCar(Car car);
+    void addCustomer(Customer customer);
+    void reserveCar(String model, String customerId, LocalDate startDate,LocalDate endDate);
+    void modifyReservation(String reservationId,String carId);
+    void cancelReservation(String reservationId);
+    void takeCarForRent(String reservationId);
+    void returnCar(String reservationId, Payment payment);
+    void showAllCars();
+    String generateId();
+}
